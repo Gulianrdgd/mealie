@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from mealie.routes._base import BaseUserController, controller
 from mealie.schema.recipe import ParsedIngredient
-from mealie.schema.recipe.recipe_ingredient import IngredientRequest, IngredientsRequest
+from mealie.schema.recipe.recipe_ingredient import IngredientRequest, IngredientsRequest, IngredientsConvertRequest
 from mealie.services.parser_services import get_parser
 
 router = APIRouter(prefix="/parser")
@@ -20,3 +20,10 @@ class IngredientParserController(BaseUserController):
     async def parse_ingredients(self, ingredients: IngredientsRequest):
         parser = get_parser(ingredients.parser, self.group_id, self.session)
         return await parser.parse(ingredients.ingredients)
+
+    @router.post("/convert-units", response_model=list[ParsedIngredient])
+    async def parse_ingredients(self, ingredients: IngredientsConvertRequest):
+        print("df")
+        parser = get_parser(ingredients.parser, self.group_id, self.session)
+        return await parser.convert_units(ingredients.ingredients, ingredients.user_prompt)
+

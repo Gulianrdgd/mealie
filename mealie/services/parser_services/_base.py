@@ -154,6 +154,9 @@ class ABCIngredientParser(ABC):
     @abstractmethod
     async def parse(self, ingredients: list[str]) -> list[ParsedIngredient]: ...
 
+    @abstractmethod
+    async def convert_units(self, ingredients: list[str], user_prompt: str) -> list[ParsedIngredient]: ...
+
     def find_ingredient_match(self, ingredient: ParsedIngredient) -> ParsedIngredient:
         if ingredient.ingredient.food and (food_match := self.data_matcher.find_food_match(ingredient.ingredient.food)):
             ingredient.ingredient.food = food_match

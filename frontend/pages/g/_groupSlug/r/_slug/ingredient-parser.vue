@@ -22,9 +22,21 @@
             :items="availableParsers"
           />
         </div>
+        <div v-if="parser === 'openai'" class="d-flex align-center mb-n4">
+          <div class="mb-4">USer prompt:</div>
+          <v-textarea
+            v-model="userPrompt"
+            class="mx-2 mb-4"
+            placeholder="Enter a prompt for the OpenAI parser"
+          />
+        </div>
       </BaseCardSectionTitle>
 
       <div class="d-flex mt-n3 mb-4 justify-end" style="gap: 5px">
+        <BaseButton color="info" :disabled="parserLoading" @click="convertUnits">
+          <template #icon> {{ $globals.icons.foods }}</template>
+          convert units
+        </BaseButton>
         <BaseButton cancel class="mr-auto" @click="$router.go(-1)"></BaseButton>
         <BaseButton color="info" :disabled="parserLoading" @click="fetchParsed">
           <template #icon> {{ $globals.icons.foods }}</template>
@@ -183,6 +195,8 @@ export default defineComponent({
       parserPreferences.value.parser = val;
     });
 
+    const userPrompt = ref<string | null>(null);
+
     function processIngredientError(ing: ParsedIngredient, index: number): Error {
       const unitError = !checkForUnit(ing.ingredient.unit);
       const foodError = !checkForFood(ing.ingredient.food);
@@ -224,6 +238,38 @@ export default defineComponent({
 
       parserLoading.value = true;
       const { data } = await api.recipes.parseIngredients(parser.value, raw);
+      parserLoading.value = false;
+
+      if (data) {
+        // When we send the recipe ingredient text to be parsed, we lose the reference to the original unparsed ingredient.
+        // Generally this is fine, but if the unparsed ingredient had a title, we lose it; we add back the title for each ingredient here.
+        try {
+          for (let i = 0; i < recipe.value.recipeIngredient.length; i++) {
+            data[i].ingredient.title = recipe.value.recipeIngredient[i].title;
+          }
+        } catch (TypeError) {
+          console.error("Index Mismatch Error during recipe ingredient parsing; did the number of ingredients change?");
+        }
+
+        parsedIng.value = data;
+
+        errors.value = data.map((ing, index: number) => {
+          return processIngredientError(ing, index);
+        });
+      } else {
+        alert.error(i18n.t("events.something-went-wrong") as string);
+        parsedIng.value = [];
+      }
+    }
+
+    async function convertUnits() {
+      if (!recipe.value || !recipe.value.recipeIngredient || !userPrompt.value) {
+        return;
+      }
+      const raw = recipe.value.recipeIngredient.map((ing) => ing.note ?? "");
+
+      parserLoading.value = true;
+      const { data } = await api.recipes.convertUnits(parser.value, raw, userPrompt.value);
       parserLoading.value = false;
 
       if (data) {
@@ -373,6 +419,7 @@ export default defineComponent({
 
     return {
       parser,
+      userPrompt,
       availableParsers,
       saveAll,
       createFood,
@@ -386,6 +433,7 @@ export default defineComponent({
       panels,
       asPercentage,
       fetchParsed,
+      convertUnits,
       parsedIng,
       recipe,
       loading,

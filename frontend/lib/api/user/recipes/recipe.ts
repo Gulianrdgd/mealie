@@ -40,6 +40,7 @@ const routes = {
   recipesCategory: `${prefix}/recipes/category`,
   recipesParseIngredient: `${prefix}/parser/ingredient`,
   recipesParseIngredients: `${prefix}/parser/ingredients`,
+  recipesConvertUnits: `${prefix}/parser/convert-units`,
   recipesTimelineEvent: `${prefix}/recipes/timeline/events`,
 
   recipesRecipeSlug: (recipe_slug: string) => `${prefix}/recipes/${recipe_slug}`,
@@ -163,6 +164,11 @@ export class RecipeAPI extends BaseCRUDAPI<CreateRecipe, Recipe, Recipe> {
   async parseIngredients(parser: Parser, ingredients: Array<string>) {
     parser = parser || "nlp";
     return await this.requests.post<ParsedIngredient[]>(routes.recipesParseIngredients, { parser, ingredients });
+  }
+
+  async convertUnits(parser: Parser, ingredients: Array<string>, user_prompt: string) {
+    parser = "openai";
+    return await this.requests.post<ParsedIngredient[]>(routes.recipesConvertUnits, { parser, ingredients, user_prompt });
   }
 
   async parseIngredient(parser: Parser, ingredient: string) {

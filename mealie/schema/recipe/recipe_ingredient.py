@@ -342,6 +342,11 @@ class IngredientsRequest(MealieModel):
     parser: RegisteredParser = RegisteredParser.nlp
     ingredients: list[str]
 
+class IngredientsConvertRequest(MealieModel):
+    parser: RegisteredParser = RegisteredParser.openai
+    ingredients: list[str]
+    user_prompt: str
+
 
 class IngredientRequest(MealieModel):
     parser: RegisteredParser = RegisteredParser.nlp

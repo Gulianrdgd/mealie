@@ -108,3 +108,49 @@ class OpenAIParser(ABCIngredientParser):
     async def parse(self, ingredients: list[str]) -> list[ParsedIngredient]:
         response = await self._parse(ingredients)
         return [self._convert_ingredient(ing) for ing in response.ingredients]
+
+    async def convert_units(self, ingredients: list[str], user_prompt: str) -> list[ParsedIngredient]:
+        service = OpenAIService()
+        data_injections = [
+            OpenAIDataInjection(
+                description=(
+                    "This is the JSON response schema. You must respond in valid JSON that follows this schema. "
+                    "Your payload should be as compact as possible, eliminating unncessesary whitespace. Any fields "
+                    "with default values which you do not populate should not be in the payload."
+                ),
+                value=OpenAIIngredients,
+            ),
+            OpenAIDataInjection(description="User Prompt containing the preferences of the user", value=user_prompt),
+        ]
+        prompt = service.get_prompt("recipes.convert-recipe-units", data_injections=data_injections)
+        print(prompt)
+        # chunk ingredients and send each chunk to its own worker
+        ingredient_chunks = self._chunk_messages(ingredients, n=service.workers)
+        tasks: list[Awaitable[str | None]] = []
+        for ingredient_chunk in ingredient_chunks:
+            message = json.dumps(ingredient_chunk, separators=(",", ":"))
+            tasks.append(service.get_response(prompt, message, force_json_response=True))
+
+        # re-combine chunks into one response
+        try:
+            responses_json = await asyncio.gather(*tasks)
+        except Exception as e:
+            raise Exception("Failed to call OpenAI services") from e
+
+        try:
+            responses = [
+                OpenAIIngredients.parse_openai_response(response_json)
+                for response_json in responses_json
+                if responses_json
+            ]
+        except Exception as e:
+            raise Exception("Failed to parse OpenAI response") from e
+
+        if not responses:
+            raise Exception("No response from OpenAI")
+
+        res =  OpenAIIngredients(
+            ingredients=[ingredient for response in responses for ingredient in response.ingredients]
+        )
+
+        return [self._convert_ingredient(ing) for ing in res.ingredients]
