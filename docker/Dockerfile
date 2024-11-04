@@ -134,7 +134,7 @@ HEALTHCHECK CMD python $MEALIE_HOME/mealie/scripts/healthcheck.py || exit 1
 ENV STATIC_FILES=/spa/static
 COPY --from=builder /app/dist  ${STATIC_FILES}
 
-ENV HOST 127.0.0.1
+ENV HOST 0.0.0.0
 
 EXPOSE ${APP_PORT}
 COPY ./docker/entry.sh $MEALIE_HOME/run.sh
