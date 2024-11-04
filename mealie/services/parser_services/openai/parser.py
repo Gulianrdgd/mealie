@@ -4,6 +4,7 @@ from collections.abc import Awaitable
 
 from mealie.schema.openai.recipe_ingredient import OpenAIIngredient, OpenAIIngredients
 from mealie.schema.recipe.recipe_ingredient import (
+    ConvertTo,
     CreateIngredientFood,
     CreateIngredientUnit,
     IngredientConfidence,
@@ -109,7 +110,7 @@ class OpenAIParser(ABCIngredientParser):
         response = await self._parse(ingredients)
         return [self._convert_ingredient(ing) for ing in response.ingredients]
 
-    async def convert_units(self, ingredients: list[str], user_prompt: str) -> list[ParsedIngredient]:
+    async def convert_units(self, ingredients: list[str], convert_to: ConvertTo) -> list[ParsedIngredient]:
         service = OpenAIService()
         data_injections = [
             OpenAIDataInjection(
@@ -120,10 +121,11 @@ class OpenAIParser(ABCIngredientParser):
                 ),
                 value=OpenAIIngredients,
             ),
-            OpenAIDataInjection(description="User Prompt containing the preferences of the user", value=user_prompt),
+            OpenAIDataInjection(
+                description="The direction to which you should convert. You should convert to:", value=convert_to
+            ),
         ]
         prompt = service.get_prompt("recipes.convert-recipe-units", data_injections=data_injections)
-        print(prompt)
         # chunk ingredients and send each chunk to its own worker
         ingredient_chunks = self._chunk_messages(ingredients, n=service.workers)
         tasks: list[Awaitable[str | None]] = []
@@ -149,7 +151,7 @@ class OpenAIParser(ABCIngredientParser):
         if not responses:
             raise Exception("No response from OpenAI")
 
-        res =  OpenAIIngredients(
+        res = OpenAIIngredients(
             ingredients=[ingredient for response in responses for ingredient in response.ingredients]
         )
 

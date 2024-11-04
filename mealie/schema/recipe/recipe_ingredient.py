@@ -342,10 +342,16 @@ class IngredientsRequest(MealieModel):
     parser: RegisteredParser = RegisteredParser.nlp
     ingredients: list[str]
 
+
+class ConvertTo(enum.Enum):
+    metric = "metric"
+    imperial = "imperial"
+
+
 class IngredientsConvertRequest(MealieModel):
     parser: RegisteredParser = RegisteredParser.openai
     ingredients: list[str]
-    user_prompt: str
+    convert_to: ConvertTo
 
 
 class IngredientRequest(MealieModel):

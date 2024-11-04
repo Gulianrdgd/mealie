@@ -166,9 +166,9 @@ export class RecipeAPI extends BaseCRUDAPI<CreateRecipe, Recipe, Recipe> {
     return await this.requests.post<ParsedIngredient[]>(routes.recipesParseIngredients, { parser, ingredients });
   }
 
-  async convertUnits(parser: Parser, ingredients: Array<string>, user_prompt: string) {
+  async convertUnits(parser: Parser, ingredients: Array<string>, convert_to: "metric" | "imperial") {
     parser = "openai";
-    return await this.requests.post<ParsedIngredient[]>(routes.recipesConvertUnits, { parser, ingredients, user_prompt });
+    return await this.requests.post<ParsedIngredient[]>(routes.recipesConvertUnits, { parser, ingredients, convert_to });
   }
 
   async parseIngredient(parser: Parser, ingredient: string) {

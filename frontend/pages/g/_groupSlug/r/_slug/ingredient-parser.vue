@@ -22,22 +22,14 @@
             :items="availableParsers"
           />
         </div>
-        <div v-if="parser === 'openai'" class="d-flex align-center mb-n4">
-          <div class="mb-4">USer prompt:</div>
-          <v-textarea
-            v-model="userPrompt"
-            class="mx-2 mb-4"
-            placeholder="Enter a prompt for the OpenAI parser"
-          />
-        </div>
       </BaseCardSectionTitle>
 
       <div class="d-flex mt-n3 mb-4 justify-end" style="gap: 5px">
-        <BaseButton color="info" :disabled="parserLoading" @click="convertUnits">
-          <template #icon> {{ $globals.icons.foods }}</template>
-          convert units
-        </BaseButton>
         <BaseButton cancel class="mr-auto" @click="$router.go(-1)"></BaseButton>
+        <BaseButton color="info" :disabled="parserLoading" @click="convertUnits">
+          <template #icon> {{ $globals.icons.cog}}</template>
+          Parse and convert units (Metric)
+        </BaseButton>
         <BaseButton color="info" :disabled="parserLoading" @click="fetchParsed">
           <template #icon> {{ $globals.icons.foods }}</template>
           {{ $tc("recipe.parser.parse-all") }}
@@ -195,8 +187,6 @@ export default defineComponent({
       parserPreferences.value.parser = val;
     });
 
-    const userPrompt = ref<string | null>(null);
-
     function processIngredientError(ing: ParsedIngredient, index: number): Error {
       const unitError = !checkForUnit(ing.ingredient.unit);
       const foodError = !checkForFood(ing.ingredient.food);
@@ -263,13 +253,13 @@ export default defineComponent({
     }
 
     async function convertUnits() {
-      if (!recipe.value || !recipe.value.recipeIngredient || !userPrompt.value) {
+      if (!recipe.value || !recipe.value.recipeIngredient) {
         return;
       }
       const raw = recipe.value.recipeIngredient.map((ing) => ing.note ?? "");
 
       parserLoading.value = true;
-      const { data } = await api.recipes.convertUnits(parser.value, raw, userPrompt.value);
+      const { data } = await api.recipes.convertUnits(parser.value, raw, "metric");
       parserLoading.value = false;
 
       if (data) {
@@ -419,7 +409,6 @@ export default defineComponent({
 
     return {
       parser,
-      userPrompt,
       availableParsers,
       saveAll,
       createFood,
