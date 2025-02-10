@@ -59,7 +59,17 @@ class RecipeCategoryPagination(PaginationBase):
 
 class RecipeTool(RecipeTag):
     id: UUID4
-    on_hand: bool = False
+    households_with_tool: list[str] = []
+
+    @field_validator("households_with_tool", mode="before")
+    def convert_households_to_slugs(cls, v):
+        if not v:
+            return []
+
+        try:
+            return [household.slug for household in v]
+        except AttributeError:
+            return v
 
 
 class RecipeToolPagination(PaginationBase):
@@ -91,6 +101,8 @@ class RecipeSummary(MealieModel):
     name: str | None = None
     slug: Annotated[str, Field(validate_default=True)] = ""
     image: Any | None = None
+    recipe_servings: float = 0
+    recipe_yield_quantity: float = 0
     recipe_yield: str | None = None
 
     total_time: str | None = None
@@ -121,6 +133,10 @@ class RecipeSummary(MealieModel):
             return str(val)
 
         return val
+
+    @property
+    def recipe_yield_display(self) -> str:
+        return f"{self.recipe_yield_quantity} {self.recipe_yield}".strip()
 
     @classmethod
     def loader_options(cls) -> list[LoaderOption]:

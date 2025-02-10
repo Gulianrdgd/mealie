@@ -11,6 +11,8 @@ import {
   UpdateImageResponse,
   RecipeZipTokenResponse,
   RecipeLastMade,
+  RecipeSuggestionQuery,
+  RecipeSuggestionResponse,
   RecipeTimelineEventIn,
   RecipeTimelineEventOut,
   RecipeTimelineEventUpdate,
@@ -31,6 +33,7 @@ const prefix = "/api";
 const routes = {
   recipesCreate: `${prefix}/recipes/create`,
   recipesBase: `${prefix}/recipes`,
+  recipesSuggestions: `${prefix}/recipes/suggestions`,
   recipesTestScrapeUrl: `${prefix}/recipes/test-scrape-url`,
   recipesCreateUrl: `${prefix}/recipes/create/url`,
   recipesCreateUrlBulk: `${prefix}/recipes/create/url/bulk`,
@@ -82,6 +85,7 @@ export type RecipeSearchQuery = {
   page?: number;
   perPage?: number;
   orderBy?: string;
+  orderByNullPosition?: "first" | "last";
 
   _searchSeed?: string;
 };
@@ -108,6 +112,12 @@ export class RecipeAPI extends BaseCRUDAPI<CreateRecipe, Recipe, Recipe> {
     return await this.requests.get<Recipe[]>(routes.recipesCategory, {
       categories,
     });
+  }
+
+  async getSuggestions(q: RecipeSuggestionQuery, foods: string[] | null = null, tools: string[]| null = null) {
+    return await this.requests.get<RecipeSuggestionResponse>(
+      route(routes.recipesSuggestions, { ...q, foods, tools })
+    );
   }
 
   async createAsset(recipeSlug: string, payload: CreateAsset) {

@@ -69,7 +69,7 @@ export interface ReadWebhook {
   enabled?: boolean;
   name?: string;
   url?: string;
-  webhookType?: WebhookType & string;
+  webhookType?: WebhookType;
   scheduledTime: string;
   groupId: string;
   householdId: string;
@@ -93,6 +93,12 @@ export interface GroupSummary {
   slug: string;
   preferences?: ReadGroupPreferences | null;
 }
+export interface LongLiveTokenCreateResponse {
+  name: string;
+  id: number;
+  createdAt?: string | null;
+  token: string;
+}
 export interface LongLiveTokenIn {
   name: string;
   integrationId?: string;
@@ -110,7 +116,7 @@ export interface PrivateUser {
   username?: string | null;
   fullName?: string | null;
   email: string;
-  authMethod?: AuthMethod & string;
+  authMethod?: AuthMethod;
   admin?: boolean;
   group: string;
   household: string;
@@ -130,7 +136,6 @@ export interface PrivateUser {
   lockedAt?: string | null;
 }
 export interface LongLiveTokenOut {
-  token: string;
   name: string;
   id: number;
   createdAt?: string | null;
@@ -175,7 +180,7 @@ export interface CreateWebhook {
   enabled?: boolean;
   name?: string;
   url?: string;
-  webhookType?: WebhookType & string;
+  webhookType?: WebhookType;
   scheduledTime: string;
 }
 export interface UserBase {
@@ -183,7 +188,7 @@ export interface UserBase {
   username?: string | null;
   fullName?: string | null;
   email: string;
-  authMethod?: AuthMethod & string;
+  authMethod?: AuthMethod;
   admin?: boolean;
   group?: string | null;
   household?: string | null;
@@ -195,10 +200,10 @@ export interface UserBase {
 }
 export interface UserIn {
   id?: string | null;
-  username?: string | null;
-  fullName?: string | null;
+  username: string;
+  fullName: string;
   email: string;
-  authMethod?: AuthMethod & string;
+  authMethod?: AuthMethod;
   admin?: boolean;
   group?: string | null;
   household?: string | null;
@@ -214,7 +219,7 @@ export interface UserOut {
   username?: string | null;
   fullName?: string | null;
   email: string;
-  authMethod?: AuthMethod & string;
+  authMethod?: AuthMethod;
   admin?: boolean;
   group: string;
   household: string;

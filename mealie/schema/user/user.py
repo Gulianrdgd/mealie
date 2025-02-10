@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any, Generic, TypeVar
 from uuid import UUID
@@ -31,7 +31,6 @@ class LongLiveTokenIn(MealieModel):
 
 
 class LongLiveTokenOut(MealieModel):
-    token: str
     name: str
     id: int
     created_at: datetime | None = None
@@ -40,6 +39,12 @@ class LongLiveTokenOut(MealieModel):
     @classmethod
     def loader_options(cls) -> list[LoaderOption]:
         return [joinedload(LongLiveToken.user)]
+
+
+class LongLiveTokenCreateResponse(LongLiveTokenOut):
+    """Should ONLY be used when creating a new token, as the token field is sensitive"""
+
+    token: str
 
 
 class CreateToken(LongLiveTokenIn):
@@ -218,7 +223,7 @@ class PrivateUser(UserOut):
             return False
 
         lockout_expires_at = self.locked_at + timedelta(hours=get_app_settings().SECURITY_USER_LOCKOUT_TIME)
-        return lockout_expires_at > datetime.now(timezone.utc)
+        return lockout_expires_at > datetime.now(UTC)
 
     def directory(self) -> Path:
         return PrivateUser.get_directory(self.id)

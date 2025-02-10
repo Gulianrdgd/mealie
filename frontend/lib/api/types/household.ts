@@ -26,12 +26,14 @@ export interface CreateHouseholdPreferences {
 }
 export interface CreateInviteToken {
   uses: number;
+  groupId?: string | null;
+  householdId?: string | null;
 }
 export interface CreateWebhook {
   enabled?: boolean;
   name?: string;
   url?: string;
-  webhookType?: WebhookType & string;
+  webhookType?: WebhookType;
   scheduledTime: string;
 }
 export interface EmailInitationResponse {
@@ -46,10 +48,6 @@ export interface GroupEventNotifierCreate {
   name: string;
   appriseUrl?: string | null;
 }
-/**
- * These events are in-sync with the EventTypes found in the EventBusService.
- * If you modify this, make sure to update the EventBusService as well.
- */
 export interface GroupEventNotifierOptions {
   testMessage?: boolean;
   webhookTask?: boolean;
@@ -204,11 +202,32 @@ export interface ReadWebhook {
   enabled?: boolean;
   name?: string;
   url?: string;
-  webhookType?: WebhookType & string;
+  webhookType?: WebhookType;
   scheduledTime: string;
   groupId: string;
   householdId: string;
   id: string;
+}
+export interface HouseholdRecipeBase {
+  lastMade?: string | null;
+}
+export interface HouseholdRecipeCreate {
+  lastMade?: string | null;
+  householdId: string;
+  recipeId: string;
+}
+export interface HouseholdRecipeOut {
+  lastMade?: string | null;
+  householdId: string;
+  recipeId: string;
+  id: string;
+}
+export interface HouseholdRecipeSummary {
+  lastMade?: string | null;
+  recipeId: string;
+}
+export interface HouseholdRecipeUpdate {
+  lastMade?: string | null;
 }
 export interface HouseholdSave {
   groupId: string;
@@ -263,7 +282,7 @@ export interface SaveWebhook {
   enabled?: boolean;
   name?: string;
   url?: string;
-  webhookType?: WebhookType & string;
+  webhookType?: WebhookType;
   scheduledTime: string;
   groupId: string;
   householdId: string;
@@ -299,7 +318,6 @@ export interface IngredientUnit {
   extras?: {
     [k: string]: unknown;
   } | null;
-  onHand?: boolean;
   fraction?: boolean;
   abbreviation?: string;
   pluralAbbreviation?: string | null;
@@ -320,7 +338,6 @@ export interface CreateIngredientUnit {
   extras?: {
     [k: string]: unknown;
   } | null;
-  onHand?: boolean;
   fraction?: boolean;
   abbreviation?: string;
   pluralAbbreviation?: string | null;
@@ -340,9 +357,9 @@ export interface IngredientFood {
   extras?: {
     [k: string]: unknown;
   } | null;
-  onHand?: boolean;
   labelId?: string | null;
   aliases?: IngredientFoodAlias[];
+  householdsWithIngredientFood?: string[];
   label?: MultiPurposeLabelSummary | null;
   createdAt?: string | null;
   updatedAt?: string | null;
@@ -365,9 +382,9 @@ export interface CreateIngredientFood {
   extras?: {
     [k: string]: unknown;
   } | null;
-  onHand?: boolean;
   labelId?: string | null;
   aliases?: CreateIngredientFoodAlias[];
+  householdsWithIngredientFood?: string[];
   [k: string]: unknown;
 }
 export interface CreateIngredientFoodAlias {
@@ -486,9 +503,6 @@ export interface ShoppingListItemUpdate {
   } | null;
   recipeReferences?: (ShoppingListItemRecipeRefCreate | ShoppingListItemRecipeRefUpdate)[];
 }
-/**
- * Only used for bulk update operations where the shopping list item id isn't already supplied
- */
 export interface ShoppingListItemUpdateBulk {
   quantity?: number;
   unit?: IngredientUnit | CreateIngredientUnit | null;
@@ -509,9 +523,6 @@ export interface ShoppingListItemUpdateBulk {
   recipeReferences?: (ShoppingListItemRecipeRefCreate | ShoppingListItemRecipeRefUpdate)[];
   id: string;
 }
-/**
- * Container for bulk shopping list item changes
- */
 export interface ShoppingListItemsCollectionOut {
   createdItems?: ShoppingListItemOut[];
   updatedItems?: ShoppingListItemOut[];
@@ -565,6 +576,8 @@ export interface RecipeSummary {
   name?: string | null;
   slug?: string;
   image?: unknown;
+  recipeServings?: number;
+  recipeYieldQuantity?: number;
   recipeYield?: string | null;
   totalTime?: string | null;
   prepTime?: string | null;
@@ -598,7 +611,8 @@ export interface RecipeTool {
   id: string;
   name: string;
   slug: string;
-  onHand?: boolean;
+  householdsWithTool?: string[];
+  [k: string]: unknown;
 }
 export interface ShoppingListRemoveRecipeParams {
   recipeDecrementQuantity?: number;
